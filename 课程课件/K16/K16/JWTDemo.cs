@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Web;
 
 /*********************** Kong Server jwt Configuration *********************
 consumer：空
@@ -80,15 +79,30 @@ string HMACSHA256(string headerData, string payloadData, string secret)
     using (var hmac = new HMACSHA256(data))
     {
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(headerData + "." + payloadData));
-        return Convert.ToBase64String(hash);
+        return Convert.ToBase64String(hash).Base64Trim();
     }
 }
 
 string Base64UrlEncode(string text)
 {
     var data = Encoding.UTF8.GetBytes(text);
-    //注意：如果出现等于,则得删掉，否则解析出错
-    var content = Convert.ToBase64String(data).Replace("=", "");
-    return HttpUtility.UrlEncode(content);
+    return Convert.ToBase64String(data).Base64Trim();
 }
+
+public static class StringExtension
+{
+    //处理Base64的三个特殊字符+、/和=
+    //= 被省略
+    //+ 替换成 -
+    /// 替换成 _ 
+    public static string Base64Trim(this string base64String)
+    {
+        return base64String
+            .Replace("=", "")
+            .Replace("+", "-")
+            .Replace("/", "_");
+    }
+}
+
+
 
